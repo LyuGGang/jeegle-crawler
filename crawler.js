@@ -3,7 +3,7 @@ var url = require('url');
 var sleep = require('sleep');
 var amqp = require('amqp');
 
-function randomInt (low, high) {
+function randomInt(low, high) {
     return Math.floor(Math.random() * (high - low) + low);
 }
 
@@ -16,7 +16,7 @@ var c = new Crawler({
 
     maxConnections: 100,
 
-    callback: function (error, result, $) {
+    callback: function(error, result, $) {
 
         function recursion() {
 
@@ -34,7 +34,7 @@ var c = new Crawler({
             }
         }
 
-        if (!!error){
+        if (!!error) {
 
             console.log(error);
 
@@ -43,9 +43,12 @@ var c = new Crawler({
             var imageUrl = $('body > div.page-wrap > div > div:nth-child(1) > div > div > a > img').attr('src');
             var tagsTag = $("body > div.page-wrap > div > div:nth-child(3) > div.box.box--tags > ul > li > a > strong"); // <strong></strong>에 담겨있음.
 
-            if(!!imageUrl) {
+            if (!!imageUrl) {
                 // 찾았다!
                 console.log(imageUrl);
+
+                // TODO: 큐에 담을 데이터(object)를 정의하고 stringfy해서 buffer(octet-stream)에 담습니다.
+
                 rabbitMQConn.publish('jeegle', // routing key
                     imageUrl, // body
                     null, // option
@@ -71,32 +74,37 @@ console.log("** Crawler Started.");
 
 
 // RabbitMQ Connection
-try{
+try {
 
     console.log("** Trying to connect RabbitMQ...");
-    rabbitMQConn = amqp.createConnection({host: 'tehranslippers.com'});
+    rabbitMQConn = amqp.createConnection({
+        host: 'tehranslippers.com'
+    });
 
-    rabbitMQConn.on('ready', function(){
+    rabbitMQConn.on('ready', function() {
 
         console.log("** RabbitMQ was successfully Connected.");
 
         // queue declaring
-        q = rabbitMQConn.queue('jeegle', function (queue) {
+        q = rabbitMQConn.queue('jeegle', {
+            durable: true,  // 서버가 꺼져도 사라지지 않는다!
+            autoDelete: false   // 큐를 더 쓰는 사람이 없어도 큐가 사라지지 않는다!
+        }, function(queue) {
 
-          console.log('** Queue ' + queue.name + ' is open.');
+            console.log('** Queue ' + queue.name + ' is open.');
 
-          // Crawling Start
-          console.log("** Crawling Started.");
-          var _url = 'http://www.pexels.com/photo/' + i + '/';
-          console.log("URL: " + _url);
-          c.queue(_url);
+            // Crawling Start
+            console.log("** Crawling Started.");
+            var _url = 'http://www.pexels.com/photo/' + i + '/';
+            console.log("URL: " + _url);
+            c.queue(_url);
         });
 
 
     });
 
 
-} catch(ex) {
+} catch (ex) {
     console.log("** Connecting to RabbitMQ was failed. Because..: " + ex);
-    process.exit(code=1)
+    process.exit(code = 1)
 }
