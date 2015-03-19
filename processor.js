@@ -19,15 +19,14 @@ try {
         // queue declaring
         q = rabbitMQConn.queue('jeegle', {
             durable: true,
-            autoDelete: false
+            autoDelete: false,
+            arguments: {
+                "x-max-length-bytes": 1000000000 // MAX: 1000MB
+            }
         }, function(queue) {
 
             console.log('** Queue ' + queue.name + ' is open.');
-
-            // TODO: Get object from queue
-
-            // 역직렬화
-
+            console.log('** Now on Receiving...');
 
             // Catch all messages
             // queue.bind('#');
@@ -40,10 +39,27 @@ try {
             }, function(message, header, deliveryInfo, ack) {
 
 
-                ack.acknowledge(false); // true 주면 이전꺼 다 ack 줌.
+                console.log('** Data Recevied!');
+                // TODO: Get object from queue
 
-                // Print messages to stdout
-                console.log(message);
+                // 역직렬화
+                var recvObj = JSON.parse(message.data.toString());
+
+                // console.log(recvObj.imageUrl); // for debug
+                // console.log(recvObj.base64Image); // for debug
+
+                // 이미지 프로세싱
+
+                console.log('** Image was trasnformed.');
+
+                // 태그 한글번역(영어도 그대로 보관할것)
+
+                console.log('** Tags were translated.');
+                // 실제 DB에 입력
+
+                console.log('** Data was successfullty processed & stored. Ack will be sent.');
+
+                ack.acknowledge(false); // true 주면 이전꺼 다 ack 줌.
             });
 
         });
