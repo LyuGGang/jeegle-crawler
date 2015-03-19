@@ -1,4 +1,5 @@
 var amqp = require('amqp');
+
 var i = 0;
 
 // Start!
@@ -48,6 +49,8 @@ try {
                 // console.log(recvObj.imageUrl); // for debug
                 // console.log(recvObj.base64Image); // for debug
 
+                console.log("** URL: " + recvObj.imageUrl);
+
                 // 이미지 프로세싱
 
                 console.log('** Image was trasnformed.');
@@ -57,7 +60,7 @@ try {
                 console.log('** Tags were translated.');
                 // 실제 DB에 입력
 
-                console.log('** Data was successfullty processed & stored. Ack will be sent.');
+                console.log('** Data was successfully processed & stored. Ack will be sent.');
 
                 ack.acknowledge(false); // true 주면 이전꺼 다 ack 줌.
             });
