@@ -1,6 +1,10 @@
 var amqp = require('amqp');
+var request = require('request');
 
 var i = 0;
+var req = request.defaults({
+    encoding: null
+});
 
 // Start!
 console.log('** Image Processor Started.');
@@ -10,7 +14,7 @@ try {
 
     console.log("** Trying to connect RabbitMQ...");
     rabbitMQConn = amqp.createConnection({
-        host: 'tehranslippers.com'
+        host: 'localhost'
     });
 
     rabbitMQConn.on('ready', function() {
@@ -51,18 +55,46 @@ try {
 
                 console.log("** URL: " + recvObj.imageUrl);
 
-                // 이미지 프로세싱
-
-                console.log('** Image was trasnformed.');
+                // // 이미지 프로세싱
+                //
+                // console.log('** Image was trasnformed.');
 
                 // 태그 한글번역(영어도 그대로 보관할것)
 
-                console.log('** Tags were translated.');
+                // console.log('** Tags were translated.');
+
+                // console.log(recvObj.tags);
+
                 // 실제 DB에 입력
+                //http: //128.199.249.209/api/images/
 
-                console.log('** Data was successfully processed & stored. Ack will be sent.');
+                // 이미지 다운 및 base64 변환
+                request.post({
+                    url: 'http://localhost/api/images/',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    json: {
+                        originalImageUrl: recvObj.imageUrl,
+                        thumbnailImageUrl: recvObj.thumbnailImageUrl,
+                        tags: recvObj.tags
+                    }
+                }, function(err, httpResponse, body) {
+                    if (!!err) {
 
-                ack.acknowledge(false); // true 주면 이전꺼 다 ack 줌.
+
+                        // console.log(httpResponse, err);
+                    } else {
+
+                        // console.log(httpResponse.status);
+                        console.log('** Data was successfully processed & stored. Ack will be sent.');
+                        ack.acknowledge(false); // true 주면 이전꺼 다 ack 줌.
+                    }
+                })
+
+
+
+
             });
 
         });

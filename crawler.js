@@ -22,14 +22,14 @@ function recursion() {
 
         console.log('** Crawling Ended. Last image number: ' + i);
         console.log('** Crawler Stopped.');
-        process.exit(0);
+        // process.exit(0);
     }
 }
 
 
 
 var i = 1000;
-var end = 1005;
+var end = 9999;
 var rabbitMQConn = null;
 var q = null;
 var req = request.defaults({
@@ -134,7 +134,7 @@ try {
 
     console.log("** Trying to connect RabbitMQ...");
     rabbitMQConn = amqp.createConnection({
-        host: 'tehranslippers.com'
+        host: 'localhost'
     });
 
     rabbitMQConn.on('ready', function() {
