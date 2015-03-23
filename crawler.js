@@ -50,7 +50,8 @@ var c = new Crawler({
 
         } else {
 
-            var imageUrl = $('body > div.page-wrap > div > div:nth-child(1) > div > div > a > img').attr('src');
+            var imageUrl = $('body > div.page-wrap > div > div:nth-child(1) > div > div > a').attr('href')
+            var thumbnailImageUrl = $('body > div.page-wrap > div > div:nth-child(1) > div > div > a > img').attr('src');
             var tagsTag = $("body > div.page-wrap > div > div:nth-child(3) > div.box.box--tags > ul > li > a > strong"); // <strong></strong>에 담겨있음.
 
             if (!!imageUrl) {
@@ -64,32 +65,52 @@ var c = new Crawler({
                     tags.push($(tagsTag[j]).text());
                 }
 
-                // 이미지 다운 및 base64 변환
-                req.get(imageUrl, function(error, response, body) {
-                    if (!error && response.statusCode == 200) {
+                // 담아서
+                var sendingData = {
 
-                        var base64Image = new Buffer(body).toString('base64')
+                    // base64Image: base64Image,
+                    imageUrl: imageUrl,
+                    thumbnailImageUrl: thumbnailImageUrl,
+                    tags: tags
+                }
 
-                        // 담아서
-                        var sendingData = {
+                // stringify 해서
+                var stringifySendingData = JSON.stringify(sendingData);
 
-                            base64Image: base64Image,
-                            imageUrl: imageUrl,
-                            tags: tags
-                        }
+                // queue에 담는다.
+                rabbitMQConn.publish('jeegle', // routing key
+                    stringifySendingData, // body
+                    null, // option
+                    null); // callback
+                console.log("** Image & Tags are successfully Queued.");
+                recursion();
 
-                        // stringify 해서
-                        var stringifySendingData = JSON.stringify(sendingData);
-
-                        // queue에 담는다.
-                        rabbitMQConn.publish('jeegle', // routing key
-                            stringifySendingData, // body
-                            null, // option
-                            null); // callback
-                        console.log("** Image & Tags are successfully Queued.");
-                        recursion();
-                    }
-                });
+                // // 이미지 다운 및 base64 변환
+                // req.get(imageUrl, function(error, response, body) {
+                //     if (!error && response.statusCode == 200) {
+                //
+                //         var base64Image = new Buffer(body).toString('base64')
+                //
+                //         // 담아서
+                //         var sendingData = {
+                //
+                //             base64Image: base64Image,
+                //             imageUrl: imageUrl,
+                //             tags: tags
+                //         }
+                //
+                //         // stringify 해서
+                //         var stringifySendingData = JSON.stringify(sendingData);
+                //
+                //         // queue에 담는다.
+                //         rabbitMQConn.publish('jeegle', // routing key
+                //             stringifySendingData, // body
+                //             null, // option
+                //             null); // callback
+                //         console.log("** Image & Tags are successfully Queued.");
+                //         recursion();
+                //     }
+                // });
 
             } else {
                 console.log("** Failed: NO IMAGE");
