@@ -66,7 +66,7 @@ try {
                 // console.log(recvObj.tags);
 
                 // 실제 DB에 입력
-                //http: //128.199.249.209/api/images/
+    
 
                 // 이미지 다운 및 base64 변환
                 request.post({
